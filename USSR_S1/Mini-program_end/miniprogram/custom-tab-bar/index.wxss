@@ -1,0 +1,167 @@
+/* custom-tab-bar/index.wxss - iOS 26 / HarmonyOS 6.1 Floating Glass TabBar */
+
+.tab-bar-wrapper {
+  --ios-blue: #007AFF;
+  --ios-gray: #888888;
+  --tabbar-bg: rgba(255, 255, 255, 0.65);
+  --tabbar-bg-fallback: rgba(255, 255, 255, 0.92);
+  --tabbar-border: rgba(255, 255, 255, 0.45);
+  --tabbar-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --tabbar-radius: 50px;
+  --tabbar-bottom: 10px;
+  --tabbar-label-active: var(--ios-blue);
+  --tabbar-label-inactive: var(--ios-gray);
+  --tabbar-glow: rgba(0, 122, 255, 0.18);
+  --tabbar-dot-color: var(--ios-blue);
+
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--tabbar-bottom) + constant(safe-area-inset-bottom));
+  bottom: calc(var(--tabbar-bottom) + env(safe-area-inset-bottom));
+  z-index: 9999;
+  width: calc(100% - 48px);
+  max-width: 420px;
+  pointer-events: auto;
+  animation: tabbarFloatIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tabbarFloatIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(40rpx) scale(0.95); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* ====== Glass Background ====== */
+.tab-bar-glass {
+  position: relative;
+  border-radius: var(--tabbar-radius);
+  overflow: hidden;
+}
+
+.blur-on .tab-bar-glass {
+  background: var(--tabbar-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: var(--tabbar-shadow);
+}
+
+.blur-off .tab-bar-glass {
+  background: var(--tabbar-bg-fallback);
+  box-shadow: var(--tabbar-shadow);
+}
+
+/* ====== Glass Border Highlight ====== */
+.tab-bar-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--tabbar-border), transparent);
+  z-index: 2;
+}
+
+/* ====== Inner Layout ====== */
+.tab-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 4px 4px 6px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ====== Tab Item ====== */
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  padding: 4px 0 2px;
+  border-radius: 12px;
+  transition: transform 300ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  position: relative;
+}
+
+.tab-item:active {
+  transform: scale(0.95);
+}
+
+/* ====== Icon Box ====== */
+.tab-icon-box {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ====== Emoji Icon ====== */
+.tab-emoji {
+  font-size: 20px;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  transition: all 300ms ease;
+  filter: grayscale(100%) opacity(0.5);
+}
+
+.tab-active .tab-emoji {
+  filter: none;
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+/* ====== Active Glow ====== */
+.tab-active-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 24px;
+  margin-left: -24px;
+  margin-top: -10px;
+  background: radial-gradient(ellipse at center, var(--tabbar-glow), transparent 70%);
+  border-radius: 50%;
+  z-index: 1;
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+/* ====== Label ====== */
+.tab-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  transition: all 300ms ease;
+  color: var(--tabbar-label-inactive);
+}
+
+.tab-active .tab-label {
+  color: var(--tabbar-label-active);
+  font-weight: 700;
+}
+
+/* ====== Active Dot ====== */
+.tab-active-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--tabbar-dot-color);
+  margin-top: 1px;
+  box-shadow: 0 0 4px var(--tabbar-glow);
+  animation: dotPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes dotPopIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

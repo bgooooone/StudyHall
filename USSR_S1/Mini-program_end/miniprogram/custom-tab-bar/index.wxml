@@ -1,0 +1,22 @@
+<view class="tab-bar-wrapper {{blurSupported ? 'blur-on' : 'blur-off'}}">
+  <view class="tab-bar-glass">
+    <view class="tab-bar-border"></view>
+    <view class="tab-bar-inner">
+      <view
+        class="tab-item {{selected === idx ? 'tab-active' : ''}}"
+        wx:for="{{list}}"
+        wx:key="pagePath"
+        wx:for-index="idx"
+        data-index="{{idx}}"
+        bindtap="switchTab"
+      >
+        <view class="tab-icon-box">
+          <text class="tab-emoji">{{item.iconPath}}</text>
+          <view class="tab-active-glow" wx:if="{{selected === idx}}"></view>
+        </view>
+        <text class="tab-label">{{item.text}}</text>
+        <view class="tab-active-dot" wx:if="{{selected === idx}}"></view>
+      </view>
+    </view>
+  </view>
+</view>
