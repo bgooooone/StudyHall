@@ -59,7 +59,7 @@ exports.main = async (event, context) => {
         hasMore = false
       }
     }
-    
+
     console.log('[自动释放] 找到使用中的座位总数:', allSeats.length)
 
     if (allSeats.length === 0) {
@@ -86,11 +86,20 @@ exports.main = async (event, context) => {
         userId: seat.userId,
         orderId: seat.orderId || '(无)'
       }
-      
-      console.log(`\n� 检查座位: ${seat.seatNumber}`)
+
+      console.log(`\n🔍 检查座位: ${seat.seatNumber}`)
       console.log(`   座位ID: ${seat._id}`)
       console.log(`   用户ID: ${seat.userId}`)
       console.log(`   订单ID: ${seat.orderId || '(无)'}`)
+
+      if (seat.status === '维护中') {
+        console.log(`   ⏭️ 座位处于维护中状态，跳过检查`)
+        detail.error = '座位处于维护中状态'
+        detail.isExpired = false
+        detail.willRelease = false
+        details.push(detail)
+        continue
+      }
 
       // 如果没有订单ID，跳过这个座位
       if (!seat.orderId) {
@@ -107,7 +116,7 @@ exports.main = async (event, context) => {
       try {
         const orderResult = await db.collection('orders').doc(seat.orderId).get()
         const order = orderResult.data
-        
+
         if (!order) {
           console.log(`   ⚠️ 订单不存在: ${seat.orderId}`)
           detail.error = '订单不存在'
@@ -134,7 +143,7 @@ exports.main = async (event, context) => {
         const expireTime = new Date(order.expireAt)
         const isExpired = expireTime.getTime() <= now.getTime()
         const timeDiff = Math.floor((expireTime.getTime() - now.getTime()) / 1000)
-        
+
         detail.orderExpireAt = expireTime.toISOString()
         detail.orderStatus = order.status
         detail.timeDiffSeconds = timeDiff
@@ -142,7 +151,7 @@ exports.main = async (event, context) => {
         detail.willRelease = isExpired
 
         console.log(`   订单解析后的时间: ${expireTime.toISOString()}`)
-        console.log(`   剩余时间: ${timeDiff}秒 (${Math.floor(timeDiff/60)}分钟)`)
+        console.log(`   剩余时间: ${timeDiff}秒 (${Math.floor(timeDiff / 60)}分钟)`)
         console.log(`   是否过期: ${isExpired ? '🔴 YES - 需要释放!' : '✅ NO'}`)
 
         if (isExpired) {
@@ -187,11 +196,11 @@ exports.main = async (event, context) => {
               hardwareStatus: { light: false, airConditioner: false, door: false },
               updatedAt: now
             }
-            
+
             await db.collection('seats').doc(seat._id).update({
               data: updateData
             })
-            
+
             console.log(`   ✅ 座位状态已更新为"空闲"`)
 
             // 更新订单状态为已完成
@@ -213,7 +222,7 @@ exports.main = async (event, context) => {
             if (seat.startedAt && seat.userId) {
               const startTime = new Date(seat.startedAt)
               const durationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000)
-              
+
               if (durationSeconds > 0) {
                 try {
                   await db.collection('study_records').add({
@@ -230,7 +239,7 @@ exports.main = async (event, context) => {
                     }
                   })
                   console.log(`   📝 学习记录已保存, 时长: ${durationSeconds}秒`)
-                  
+
                   // 更新用户的总学习时长
                   try {
                     await db.collection('users').where({
@@ -261,7 +270,7 @@ exports.main = async (event, context) => {
             releaseLog.releasedAt = now.toISOString()
             releaseLog.studyDurationSeconds = durationSeconds || 0
             try { await seatReleaseLogs.add({ data: releaseLog }) } catch (logErr3) { console.error('写入成功日志失败:', logErr3.message) }
-            
+
           } catch (releaseError) {
             detail.released = false
             detail.error = releaseError.message
@@ -275,14 +284,14 @@ exports.main = async (event, context) => {
         } else {
           console.log(`   ✅ 订单未过期，座位保持使用状态`)
         }
-        
+
       } catch (orderQueryError) {
         detail.error = `查询订单失败: ${orderQueryError.message}`
         detail.isExpired = false
         detail.willRelease = false
         console.error(`   ❌ 查询订单失败:`, orderQueryError.message)
       }
-      
+
       details.push(detail)
     }
 
@@ -329,7 +338,7 @@ exports.main = async (event, context) => {
     console.error('错误信息:', error.message)
     console.error('错误堆栈:', error.stack)
     console.error('========================================')
-    
+
     return {
       success: false,
       error: error.message,

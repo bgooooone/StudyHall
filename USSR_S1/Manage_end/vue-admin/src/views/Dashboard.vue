@@ -27,6 +27,15 @@
         </div>
       </div>
       <div class="stat-card">
+        <div class="stat-icon-wrap maintenance"><span>🔧</span></div>
+        <div class="stat-info">
+          <h3>维护中</h3>
+          <div class="number" style="color: #8b5cf6">
+            {{ stats.maintenanceSeats }}
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
         <div class="stat-icon-wrap rate"><span>📊</span></div>
         <div class="stat-info">
           <h3>使用率</h3>
@@ -79,6 +88,7 @@
           totalSeats: stats.totalSeats,
           freeSeats: stats.freeSeats,
           inUseSeats: stats.inUseSeats,
+          maintenanceSeats: stats.maintenanceSeats,
         }"
       />
       <OrderTrendChart :orders="allOrders" />
@@ -104,6 +114,7 @@ const stats = ref({
   totalSeats: 0,
   freeSeats: 0,
   inUseSeats: 0,
+  maintenanceSeats: 0,
   usageRate: 0,
   totalOrders: 0,
   totalRevenue: 0,
@@ -138,6 +149,7 @@ const loadStatistics = async () => {
       (s) => s.status === "空闲" || s.status === "free"
     ).length;
     const inUseSeats = seats.filter((s) => s.status === "使用中").length;
+    const maintenanceSeats = seats.filter((s) => s.status === "维护中").length;
     const usageRate =
       totalSeats > 0 ? ((inUseSeats / totalSeats) * 100).toFixed(1) : 0;
 
@@ -159,6 +171,7 @@ const loadStatistics = async () => {
       totalSeats,
       freeSeats,
       inUseSeats,
+      maintenanceSeats,
       usageRate,
       totalOrders: orders.length,
       totalRevenue,
@@ -219,6 +232,9 @@ onMounted(() => {
 }
 .stat-icon-wrap.in-use {
   background: var(--color-primary-bg);
+}
+.stat-icon-wrap.maintenance {
+  background: #f3eeff;
 }
 .stat-icon-wrap.rate {
   background: var(--color-warning-bg);

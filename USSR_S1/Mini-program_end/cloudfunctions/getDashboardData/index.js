@@ -10,7 +10,7 @@ exports.main = async (event, context) => {
     var totalSeats = seats.length
     var availableSeats = 0
     var usingSeats = 0
-    var fixSeats = 0
+    var maintenanceSeats = 0
     var immersiveUsing = 0
     var sunshineUsing = 0
     var vipUsing = 0
@@ -23,7 +23,7 @@ exports.main = async (event, context) => {
         else if (row >= 4 && row <= 5) sunshineUsing++
         else if (row === 6) vipUsing++
       }
-      else fixSeats++
+      else if (seats[i].status === '维护中') maintenanceSeats++
     }
 
     var now = new Date()
@@ -132,7 +132,7 @@ exports.main = async (event, context) => {
         totalSeats: totalSeats,
         availableSeats: availableSeats,
         usingSeats: usingSeats,
-        fixSeats: fixSeats,
+        maintenanceSeats: maintenanceSeats,
         usageRate: totalSeats > 0 ? Math.round(usingSeats / totalSeats * 100) : 0,
         zoneUsing: { immersive: immersiveUsing, sunshine: sunshineUsing, vip: vipUsing },
         todayOrderCount: todayOrderCount,

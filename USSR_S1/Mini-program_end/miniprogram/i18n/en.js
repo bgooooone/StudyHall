@@ -60,6 +60,7 @@ var en = {
     couponProcessFailed: 'Coupon processing failed',
     lackPayParams: 'Missing payment parameters',
     seatNotAvailable: 'This seat is not available',
+    seatUnderMaintenance: 'This seat is under maintenance',
     reservedSeatTip: 'Go to Study page for reserved seats',
     systemMaintenance: 'System under maintenance, please try later',
     iKnow: 'I understand',

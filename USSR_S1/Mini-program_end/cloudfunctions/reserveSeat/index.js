@@ -54,7 +54,7 @@ async function getZonePrices(seatNumber, zoneKey) {
   return prices[key] || prices.immersive
 }
 
-exports.main = async function(event, context) {
+exports.main = async function (event, context) {
   try {
     const { OPENID } = cloud.getWXContext()
     const { seatId, action, hardwareStatus, device, status, days, planType, quantity, orderId, accepted, totalSeconds, autoReleaseAt, zoneKey } = event
@@ -227,6 +227,9 @@ exports.main = async function(event, context) {
     const seatResult = await seatsCollection.doc(seatId).get()
     if (!seatResult.data) { return { success: false, error: '座位不存在' } }
     const seat = seatResult.data
+
+    if (seat.status === '维护中') { return { success: false, error: '座位正在维护中，暂不可用' } }
+
     let updateData = {}
 
     switch (action) {

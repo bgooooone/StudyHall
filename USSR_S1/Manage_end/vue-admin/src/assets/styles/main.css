@@ -149,6 +149,16 @@ body {
   color: var(--color-primary);
 }
 
+.status-maintenance {
+  background: #f3eeff;
+  color: #8b5cf6;
+}
+
+.status-unknown {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
 .status-pending {
   background: var(--color-warning-bg);
   color: var(--color-warning);

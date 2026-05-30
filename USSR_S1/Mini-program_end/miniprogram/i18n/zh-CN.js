@@ -60,6 +60,7 @@ var zhCN = {
     couponProcessFailed: '优惠券处理失败',
     lackPayParams: '缺少支付参数',
     seatNotAvailable: '该座位不可预订',
+    seatUnderMaintenance: '该座位维护中，暂不可用',
     reservedSeatTip: '已订座位请到学时界面操作',
     systemMaintenance: '系统维护中，请稍后再试',
     iKnow: '我知道了',

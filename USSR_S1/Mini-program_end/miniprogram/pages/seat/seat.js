@@ -143,7 +143,7 @@ Page({
 
   onUnload: function () { this.stopSeatsWatch(); },
 
-  applyLanguage: function() {
+  applyLanguage: function () {
     var lang = i18n.getCurrentLang()
     var text = i18n.getPageText('seat')
     this.setData({ i18n: text, currentLang: lang })
@@ -183,7 +183,7 @@ Page({
     }
   },
 
-  updateZoneRoomsI18n: function() {
+  updateZoneRoomsI18n: function () {
     var text = this.data.i18n
     if (!text || !text.immersiveZone) return
     var zoneRooms = this.data.zoneRooms
@@ -328,7 +328,7 @@ Page({
       wx.showModal({
         title: this.data.i18n.tip,
         content: this.data.i18n.loginRequired,
-        success: function(res) {
+        success: function (res) {
           if (res.confirm) {
             wx.switchTab({ url: '/pages/mine/mine' });
           }
@@ -553,8 +553,13 @@ Page({
       return;
     }
 
+    if (seat.status === '维护中') {
+      wx.showToast({ title: that.data.i18n.seatUnderMaintenance || '该座位维护中，暂不可用', icon: 'none' });
+      return;
+    }
+
     if (seat.status !== '空闲') {
-      wx.showToast({ title: seat.status === '已订' ? (that.data.i18n.reservedSeatTip || '已订座位请到学时界面操作') : (that.data.i18n.seatNotAvailable || '该座位不可预订'), icon: 'none' });
+      wx.showToast({ title: that.data.i18n.seatNotAvailable || '该座位不可预订', icon: 'none' });
       return;
     }
 

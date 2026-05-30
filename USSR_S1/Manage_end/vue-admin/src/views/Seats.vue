@@ -1,21 +1,40 @@
 <template>
   <div>
-    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr)">
-      <div class="stat-card">
-        <h3>总座位数</h3>
-        <div class="number">{{ seatStats.total }}</div>
+    <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr)">
+      <div class="stat-card stat-total">
+        <div class="stat-icon">🪑</div>
+        <div class="stat-body">
+          <h3>总座位数</h3>
+          <div class="number">{{ seatStats.total }}</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <h3>空闲</h3>
-        <div class="number">{{ seatStats.free }}</div>
+      <div class="stat-card stat-free">
+        <div class="stat-icon">✅</div>
+        <div class="stat-body">
+          <h3>空闲</h3>
+          <div class="number">{{ seatStats.free }}</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <h3>使用中</h3>
-        <div class="number">{{ seatStats.inUse }}</div>
+      <div class="stat-card stat-inuse">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-body">
+          <h3>使用中</h3>
+          <div class="number">{{ seatStats.inUse }}</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <h3>使用率</h3>
-        <div class="number">{{ seatStats.rate }}%</div>
+      <div class="stat-card stat-maintenance">
+        <div class="stat-icon">🔧</div>
+        <div class="stat-body">
+          <h3>维护中</h3>
+          <div class="number">{{ seatStats.maintenance }}</div>
+        </div>
+      </div>
+      <div class="stat-card stat-rate">
+        <div class="stat-icon">📊</div>
+        <div class="stat-body">
+          <h3>使用率</h3>
+          <div class="number">{{ seatStats.rate }}%</div>
+        </div>
       </div>
     </div>
 
@@ -36,6 +55,7 @@
           <option value="">全部状态</option>
           <option value="空闲">空闲</option>
           <option value="使用中">使用中</option>
+          <option value="维护中">维护中</option>
         </select>
         <button class="btn btn-primary" @click="loadSeats">刷新数据</button>
       </div>
@@ -81,13 +101,8 @@
               <strong>{{ seat.seatNumber || "-" }}</strong>
             </td>
             <td>
-              <span
-                :class="[
-                  'status-badge',
-                  seat.status === '使用中' ? 'status-in-use' : 'status-free',
-                ]"
-              >
-                {{ seat.status || "未知" }}
+              <span :class="['status-badge', getStatusClass(seat.status)]">
+                {{ getStatusLabel(seat.status) }}
               </span>
             </td>
             <td>
@@ -99,19 +114,32 @@
             <td>{{ formatDate(seat.startedAt) }}</td>
             <td>{{ formatDate(seat.expireAt) }}</td>
             <td>
-              <template v-if="seat.status === '使用中'">
-                <button class="btn btn-danger" @click="forceRelease(seat)">
-                  强制释放
-                </button>
-              </template>
-              <template v-else>
-                <button class="btn btn-warning" @click="openEditModal(seat)">
-                  编辑
-                </button>
-                <button class="btn btn-danger" @click="deleteSeat(seat)">
-                  删除
-                </button>
-              </template>
+              <div class="action-btns">
+                <template v-if="seat.status === '使用中'">
+                  <button class="btn btn-danger btn-sm" @click="forceRelease(seat)">
+                    强制释放
+                  </button>
+                </template>
+                <template v-else-if="seat.status === '维护中'">
+                  <button class="btn btn-success btn-sm" @click="restoreSeat(seat)">
+                    恢复空闲
+                  </button>
+                  <button class="btn btn-danger btn-sm" @click="deleteSeat(seat)">
+                    删除
+                  </button>
+                </template>
+                <template v-else>
+                  <button class="btn btn-warning btn-sm" @click="setMaintenance(seat)">
+                    设为维护
+                  </button>
+                  <button class="btn btn-ghost btn-sm" @click="openEditModal(seat)">
+                    编辑
+                  </button>
+                  <button class="btn btn-danger btn-sm" @click="deleteSeat(seat)">
+                    删除
+                  </button>
+                </template>
+              </div>
             </td>
           </tr>
           <tr v-if="filteredSeats.length === 0">
@@ -148,14 +176,11 @@
         下一页
       </button>
       <span style="margin-left: 10px; color: #888; font-size: 13px">
-        共 {{ filteredSeats.length }} 条 / 第 {{ currentPage }}/{{
-          totalPages
-        }}
+        共 {{ filteredSeats.length }} 条 / 第 {{ currentPage }}/{{ totalPages }}
         页
       </span>
     </div>
 
-    <!-- 添加/编辑模态框 -->
     <Modal
       v-if="showModal"
       :title="modalTitle"
@@ -241,8 +266,9 @@ const seatStats = computed(() => {
     (s) => s.status === "空闲" || s.status === "free"
   ).length;
   const inUse = allSeats.value.filter((s) => s.status === "使用中").length;
+  const maintenance = allSeats.value.filter((s) => s.status === "维护中").length;
   const rate = total > 0 ? ((inUse / total) * 100).toFixed(1) : 0;
-  return { total, free, inUse, rate };
+  return { total, free, inUse, maintenance, rate };
 });
 
 const totalPages = computed(() =>
@@ -272,10 +298,39 @@ const isAllSelected = computed(() => {
   );
 });
 
+const getStatusClass = (status) => {
+  switch (status) {
+    case "空闲":
+    case "free":
+      return "status-free";
+    case "使用中":
+      return "status-in-use";
+    case "维护中":
+      return "status-maintenance";
+    default:
+      return "status-unknown";
+  }
+};
+
+const getStatusLabel = (status) => {
+  switch (status) {
+    case "空闲":
+    case "free":
+      return "空闲";
+    case "使用中":
+      return "使用中";
+    case "维护中":
+      return "维护中";
+    default:
+      return status || "未知";
+  }
+};
+
 const loadSeats = async () => {
   loading.showLoadingState(true);
   try {
-    const ready = await ensureCloudReady(); if (!ready) throw new Error("云开发初始化失败");
+    const ready = await ensureCloudReady();
+    if (!ready) throw new Error("云开发初始化失败");
 
     const db = getDB();
     if (!db) {
@@ -355,6 +410,78 @@ const forceRelease = async (seat) => {
   } catch (error) {
     console.error("强制释放失败:", error);
     toast.showToastMessage("强制释放失败: " + error.message, "error");
+  }
+
+  loading.showLoadingState(false);
+};
+
+const setMaintenance = async (seat) => {
+  if (
+    !confirm(
+      `确定要将座位 ${seat.seatNumber} 设为维护中吗？\n\n设为维护中后，该座位将无法被用户预订，直到管理员恢复。`
+    )
+  ) {
+    return;
+  }
+
+  loading.showLoadingState(true);
+
+  try {
+    const result = await callCloudFunction("adminOperations", {
+      action: "setMaintenance",
+      seatId: seat._id,
+      source: "admin_panel",
+    });
+
+    if (result.success) {
+      toast.showToastMessage(
+        `🔧 座位 ${seat.seatNumber} 已设为维护中`,
+        "success"
+      );
+      emit("sync");
+      await loadSeats();
+    } else {
+      throw new Error(result.error || "操作失败");
+    }
+  } catch (error) {
+    console.error("设置维护失败:", error);
+    toast.showToastMessage("设置维护失败: " + error.message, "error");
+  }
+
+  loading.showLoadingState(false);
+};
+
+const restoreSeat = async (seat) => {
+  if (
+    !confirm(
+      `确定要将座位 ${seat.seatNumber} 恢复为空闲吗？\n\n恢复后该座位将可被用户正常预订。`
+    )
+  ) {
+    return;
+  }
+
+  loading.showLoadingState(true);
+
+  try {
+    const result = await callCloudFunction("adminOperations", {
+      action: "restoreSeat",
+      seatId: seat._id,
+      source: "admin_panel",
+    });
+
+    if (result.success) {
+      toast.showToastMessage(
+        `✅ 座位 ${seat.seatNumber} 已恢复为空闲`,
+        "success"
+      );
+      emit("sync");
+      await loadSeats();
+    } else {
+      throw new Error(result.error || "操作失败");
+    }
+  } catch (error) {
+    console.error("恢复座位失败:", error);
+    toast.showToastMessage("恢复座位失败: " + error.message, "error");
   }
 
   loading.showLoadingState(false);
@@ -497,10 +624,19 @@ const deleteSeat = async (seat) => {
   loading.showLoadingState(true);
 
   try {
-    const db = getDB();
-    await db.collection("seats").doc(seat._id).remove();
-    toast.showToastMessage(`座位 ${seat.seatNumber} 已删除`, "success");
-    await loadSeats();
+    const result = await callCloudFunction("adminOperations", {
+      action: "deleteSeat",
+      seatId: seat._id,
+      source: "admin_panel",
+    });
+
+    if (result.success) {
+      toast.showToastMessage(`座位 ${seat.seatNumber} 已删除`, "success");
+      emit("sync");
+      await loadSeats();
+    } else {
+      throw new Error(result.error || "删除失败");
+    }
   } catch (error) {
     toast.showToastMessage("删除失败: " + error.message, "error");
   }
@@ -514,6 +650,113 @@ loadSeats();
 </script>
 
 <style scoped>
+.stats-grid {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--color-surface);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+
+.stat-card.stat-total::before {
+  background: var(--color-primary);
+}
+.stat-card.stat-free::before {
+  background: var(--color-success);
+}
+.stat-card.stat-inuse::before {
+  background: #f59e0b;
+}
+.stat-card.stat-maintenance::before {
+  background: #8b5cf6;
+}
+.stat-card.stat-rate::before {
+  background: var(--color-error);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.stat-total .stat-icon {
+  background: var(--color-primary-bg);
+}
+.stat-free .stat-icon {
+  background: var(--color-success-bg);
+}
+.stat-inuse .stat-icon {
+  background: #fef3c7;
+}
+.stat-maintenance .stat-icon {
+  background: #f3eeff;
+}
+.stat-rate .stat-icon {
+  background: var(--color-error-bg);
+}
+
+.stat-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-body h3 {
+  color: var(--color-text-aux);
+  font: var(--font-small);
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
+}
+
+.stat-body .number {
+  font: 700 26px/1.2 var(--font-family);
+  color: var(--color-text-primary);
+}
+
+.stat-free .number {
+  color: var(--color-success);
+}
+.stat-inuse .number {
+  color: #f59e0b;
+}
+.stat-maintenance .number {
+  color: #8b5cf6;
+}
+.stat-rate .number {
+  color: var(--color-error);
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -543,6 +786,17 @@ loadSeats();
   width: 16px;
   height: 16px;
   cursor: pointer;
+}
+
+.action-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 12px;
 }
 
 .pagination {

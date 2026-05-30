@@ -135,9 +135,9 @@
                 <span class="sl-val text-warning">{{ usingSeats }}</span>
               </div>
               <div class="sl-item">
-                <span class="sl-dot" style="background: #ef4444"></span>
-                <span class="sl-label">维护</span>
-                <span class="sl-val text-danger">{{ fixSeats }}</span>
+                <span class="sl-dot" style="background: #8b5cf6"></span>
+                <span class="sl-label">维护中</span>
+                <span class="sl-val text-danger">{{ maintenanceSeats }}</span>
               </div>
               <div class="sl-divider"></div>
               <div class="sl-item">
@@ -270,7 +270,7 @@ var todayNewUsers = ref(0);
 var usingSeats = ref(0);
 var totalSeats = ref(0);
 var availableSeats = ref(0);
-var fixSeats = ref(0);
+var maintenanceSeats = ref(0);
 var usageRate = ref(0);
 var zoneUsing = ref({ immersive: 0, sunshine: 0, vip: 0 });
 var totalUsers = ref(0);
@@ -336,9 +336,9 @@ var seatPieOption = computed(function () {
             itemStyle: { color: "#f5a623" },
           },
           {
-            value: fixSeats.value,
-            name: "维护",
-            itemStyle: { color: "#ef4444" },
+            value: maintenanceSeats.value,
+            name: "维护中",
+            itemStyle: { color: "#8b5cf6" },
           },
         ],
         animationType: "scale",
@@ -631,7 +631,7 @@ async function loadData() {
       usingSeats.value = d.usingSeats || 0;
       totalSeats.value = d.totalSeats || 0;
       availableSeats.value = d.availableSeats || 0;
-      fixSeats.value = d.fixSeats || 0;
+      maintenanceSeats.value = d.maintenanceSeats || 0;
       usageRate.value = d.usageRate || 0;
       zoneUsing.value = d.zoneUsing || { immersive: 0, sunshine: 0, vip: 0 };
       totalUsers.value = d.totalUsers || 0;

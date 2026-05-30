@@ -60,6 +60,7 @@ var zhTW = {
     couponProcessFailed: '優惠券處理失敗',
     lackPayParams: '缺少付款參數',
     seatNotAvailable: '該座位不可預訂',
+    seatUnderMaintenance: '該座位維護中，暫不可用',
     reservedSeatTip: '已訂座位請到學時介面操作',
     systemMaintenance: '系統維護中，請稍後再試',
     iKnow: '我知道了',

@@ -30,6 +30,21 @@ exports.main = async (event, context) => {
       return await batchReleaseSeats(seatIds, now, event.source)
     }
 
+    if (action === 'setMaintenance') {
+      if (!seatId) return { success: false, error: '座位ID不能为空' }
+      return await setSeatMaintenance(seatId, now, event.source)
+    }
+
+    if (action === 'restoreSeat') {
+      if (!seatId) return { success: false, error: '座位ID不能为空' }
+      return await restoreSeatFromMaintenance(seatId, now, event.source)
+    }
+
+    if (action === 'deleteSeat') {
+      if (!seatId) return { success: false, error: '座位ID不能为空' }
+      return await deleteSeatById(seatId, now, event.source)
+    }
+
     return { success: false, error: `未知操作类型: ${action}` }
 
   } catch (error) {
@@ -138,7 +153,7 @@ async function forceReleaseOneSeat(seatId, now, source) {
         status: 'success'
       }
     })
-  } catch (logErr) {}
+  } catch (logErr) { }
 
   console.log(`[adminOps] ✅✅✅ 座位 ${seat.seatNumber} 强制释放成功! 学习时长: ${durationSeconds}秒`)
 
@@ -181,6 +196,159 @@ async function batchReleaseSeats(seatIds, now, source) {
     failedCount: failCount,
     results: results,
     message: `批量释放完成：成功${successCount}个，失败${failCount}个`,
+    executedAt: now.toISOString()
+  }
+}
+
+async function setSeatMaintenance(seatId, now, source) {
+  console.log(`[adminOps] 🔧 开始设置座位维护中: ${seatId}`)
+
+  const seatResult = await db.collection('seats').doc(seatId).get()
+  if (!seatResult.data) {
+    return { success: false, error: '座位不存在', executedAt: now.toISOString() }
+  }
+
+  const seat = seatResult.data
+  console.log(`[adminOps] 找到座位: ${seat.seatNumber}, 当前状态: ${seat.status}`)
+
+  if (seat.status === '维护中') {
+    return { success: true, message: '座位已处于维护中状态', executedAt: now.toISOString() }
+  }
+
+  if (seat.status === '使用中') {
+    return { success: false, error: '座位正在使用中，请先释放再设为维护', executedAt: now.toISOString() }
+  }
+
+  await db.collection('seats').doc(seatId).update({
+    data: {
+      status: '维护中',
+      userId: '',
+      reservedAt: null,
+      startedAt: null,
+      expireAt: null,
+      remainingTime: 0,
+      autoReleaseAt: null,
+      orderId: '',
+      hardwareStatus: { light: false, airConditioner: false, door: false },
+      updatedAt: now
+    }
+  })
+
+  try {
+    await seatReleaseLogs.add({
+      data: {
+        action: 'admin_set_maintenance',
+        seatId: seatId,
+        seatNumber: seat.seatNumber,
+        source: source || 'admin_panel',
+        executedAt: now,
+        status: 'success'
+      }
+    })
+  } catch (logErr) { }
+
+  console.log(`[adminOps] ✅ 座位 ${seat.seatNumber} 已设为维护中`)
+
+  return {
+    success: true,
+    action: 'set_maintenance',
+    seatNumber: seat.seatNumber,
+    message: `座位 ${seat.seatNumber} 已设为维护中`,
+    executedAt: now.toISOString()
+  }
+}
+
+async function restoreSeatFromMaintenance(seatId, now, source) {
+  console.log(`[adminOps] 🔧 开始恢复维护中座位: ${seatId}`)
+
+  const seatResult = await db.collection('seats').doc(seatId).get()
+  if (!seatResult.data) {
+    return { success: false, error: '座位不存在', executedAt: now.toISOString() }
+  }
+
+  const seat = seatResult.data
+  console.log(`[adminOps] 找到座位: ${seat.seatNumber}, 当前状态: ${seat.status}`)
+
+  if (seat.status !== '维护中') {
+    return { success: false, error: '该座位不处于维护中状态，无法恢复', status: seat.status, executedAt: now.toISOString() }
+  }
+
+  await db.collection('seats').doc(seatId).update({
+    data: {
+      status: '空闲',
+      userId: '',
+      reservedAt: null,
+      startedAt: null,
+      expireAt: null,
+      remainingTime: 0,
+      autoReleaseAt: null,
+      orderId: '',
+      hardwareStatus: { light: false, airConditioner: false, door: false },
+      updatedAt: now
+    }
+  })
+
+  try {
+    await seatReleaseLogs.add({
+      data: {
+        action: 'admin_restore_seat',
+        seatId: seatId,
+        seatNumber: seat.seatNumber,
+        source: source || 'admin_panel',
+        executedAt: now,
+        status: 'success'
+      }
+    })
+  } catch (logErr) { }
+
+  console.log(`[adminOps] ✅ 座位 ${seat.seatNumber} 已恢复为空闲`)
+
+  return {
+    success: true,
+    action: 'restore_seat',
+    seatNumber: seat.seatNumber,
+    message: `座位 ${seat.seatNumber} 已恢复为空闲`,
+    executedAt: now.toISOString()
+  }
+}
+
+async function deleteSeatById(seatId, now, source) {
+  console.log(`[adminOps] 🗑️ 开始删除座位: ${seatId}`)
+
+  const seatResult = await db.collection('seats').doc(seatId).get()
+  if (!seatResult.data) {
+    return { success: false, error: '座位不存在', executedAt: now.toISOString() }
+  }
+
+  const seat = seatResult.data
+  console.log(`[adminOps] 找到座位: ${seat.seatNumber}, 状态: ${seat.status}`)
+
+  if (seat.status === '使用中') {
+    return { success: false, error: '座位正在使用中，请先释放再删除', executedAt: now.toISOString() }
+  }
+
+  await db.collection('seats').doc(seatId).remove()
+
+  try {
+    await seatReleaseLogs.add({
+      data: {
+        action: 'admin_delete_seat',
+        seatId: seatId,
+        seatNumber: seat.seatNumber,
+        source: source || 'admin_panel',
+        executedAt: now,
+        status: 'success'
+      }
+    })
+  } catch (logErr) { }
+
+  console.log(`[adminOps] ✅ 座位 ${seat.seatNumber} 已删除`)
+
+  return {
+    success: true,
+    action: 'delete_seat',
+    seatNumber: seat.seatNumber,
+    message: `座位 ${seat.seatNumber} 已删除`,
     executedAt: now.toISOString()
   }
 }

@@ -88,6 +88,11 @@ const initChart = () => {
             name: "空闲",
             itemStyle: { color: "#50C878" },
           },
+          {
+            value: props.data.maintenanceSeats || 0,
+            name: "维护中",
+            itemStyle: { color: "#8b5cf6" },
+          },
         ],
       },
     ],
