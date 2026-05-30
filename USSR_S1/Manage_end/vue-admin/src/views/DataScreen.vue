@@ -12,7 +12,7 @@
 
     <div class="screen-body">
       <div class="panel-left">
-        <div class="panel-box" style="height: 180px">
+        <div class="panel-box" style="height: 215px">
           <div class="panel-title">📊 今日概览</div>
           <div class="kpi-grid">
             <div class="kpi-card">
@@ -50,9 +50,24 @@
           <div class="panel-title-row">
             <div class="panel-title">📈 营收趋势</div>
             <div class="range-btns">
-              <span class="range-btn" :class="{ active: trendRange === 'week' }" @click="switchTrendRange('week')">近7天</span>
-              <span class="range-btn" :class="{ active: trendRange === 'month' }" @click="switchTrendRange('month')">近4周</span>
-              <span class="range-btn" :class="{ active: trendRange === 'year' }" @click="switchTrendRange('year')">近1年</span>
+              <span
+                class="range-btn"
+                :class="{ active: trendRange === 'week' }"
+                @click="switchTrendRange('week')"
+                >近7天</span
+              >
+              <span
+                class="range-btn"
+                :class="{ active: trendRange === 'month' }"
+                @click="switchTrendRange('month')"
+                >近4周</span
+              >
+              <span
+                class="range-btn"
+                :class="{ active: trendRange === 'year' }"
+                @click="switchTrendRange('year')"
+                >近1年</span
+              >
             </div>
           </div>
           <div style="flex: 1; min-height: 0">
@@ -162,9 +177,24 @@
           <div class="panel-title-row">
             <div class="panel-title">📉 订单趋势</div>
             <div class="range-btns">
-              <span class="range-btn" :class="{ active: trendRange === 'week' }" @click="switchTrendRange('week')">近7天</span>
-              <span class="range-btn" :class="{ active: trendRange === 'month' }" @click="switchTrendRange('month')">近30天</span>
-              <span class="range-btn" :class="{ active: trendRange === 'year' }" @click="switchTrendRange('year')">近1年</span>
+              <span
+                class="range-btn"
+                :class="{ active: trendRange === 'week' }"
+                @click="switchTrendRange('week')"
+                >近7天</span
+              >
+              <span
+                class="range-btn"
+                :class="{ active: trendRange === 'month' }"
+                @click="switchTrendRange('month')"
+                >近30天</span
+              >
+              <span
+                class="range-btn"
+                :class="{ active: trendRange === 'year' }"
+                @click="switchTrendRange('year')"
+                >近1年</span
+              >
             </div>
           </div>
           <div style="flex: 1; min-height: 0">
@@ -218,10 +248,7 @@ import {
   LegendComponent,
   GridComponent,
 } from "echarts/components";
-import {
-  callCloudFunction,
-  ensureCloudReady,
-} from "../utils/cloudBase.js";
+import { callCloudFunction, ensureCloudReady } from "../utils/cloudBase.js";
 
 use([
   CanvasRenderer,
@@ -252,12 +279,12 @@ var totalRevenue = ref(0);
 var weekRevenueData = ref([0, 0, 0, 0, 0, 0, 0]);
 var weekOrderData = ref([0, 0, 0, 0, 0, 0, 0]);
 var planTypeCount = ref({ hour: 0, day: 0, week: 0 });
-var totalCoupons = ref(0)
-var usedCoupons = ref(0)
-var couponUsageRate = ref(0)
-var trendRange = ref('week')
-var trendLabels = ref([])
-var trendRevenueData = ref([])
+var totalCoupons = ref(0);
+var usedCoupons = ref(0);
+var couponUsageRate = ref(0);
+var trendRange = ref("week");
+var trendLabels = ref([]);
+var trendRevenueData = ref([]);
 var trendOrderData = ref([]);
 
 function kpiConfig(num, prefix) {
@@ -323,21 +350,115 @@ var seatPieOption = computed(function () {
 
 var revenueTrendOption = computed(function () {
   return {
-    tooltip: { trigger: "axis", backgroundColor: "rgba(0,0,0,0.7)", borderColor: "#00e4ff", textStyle: { color: "#fff" } },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(0,0,0,0.7)",
+      borderColor: "#00e4ff",
+      textStyle: { color: "#fff" },
+    },
     grid: { left: 45, right: 15, top: 15, bottom: 25 },
-    xAxis: { type: "category", data: trendLabels.value, axisLine: { lineStyle: { color: "#1a5276" } }, axisLabel: { color: "#7fb3d3", fontSize: 10, rotate: trendRange.value === 'year' ? 45 : trendRange.value === 'month' ? 15 : 0 } },
-    yAxis: { type: "value", splitLine: { lineStyle: { color: "#0d2b45" } }, axisLabel: { color: "#7fb3d3", fontSize: 10 } },
-    series: [{ data: trendRevenueData.value, type: "line", smooth: true, lineStyle: { color: "#00e4ff", width: 2 }, areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(0,228,255,0.35)" }, { offset: 1, color: "rgba(0,228,255,0.02)" }] } }, itemStyle: { color: "#00e4ff" }, symbol: "circle", symbolSize: 4 }],
+    xAxis: {
+      type: "category",
+      data: trendLabels.value,
+      axisLine: { lineStyle: { color: "#1a5276" } },
+      axisLabel: {
+        color: "#7fb3d3",
+        fontSize: 10,
+        rotate:
+          trendRange.value === "year"
+            ? 45
+            : trendRange.value === "month"
+            ? 15
+            : 0,
+      },
+    },
+    yAxis: {
+      type: "value",
+      splitLine: { lineStyle: { color: "#0d2b45" } },
+      axisLabel: { color: "#7fb3d3", fontSize: 10 },
+    },
+    series: [
+      {
+        data: trendRevenueData.value,
+        type: "line",
+        smooth: true,
+        lineStyle: { color: "#00e4ff", width: 2 },
+        areaStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: "rgba(0,228,255,0.35)" },
+              { offset: 1, color: "rgba(0,228,255,0.02)" },
+            ],
+          },
+        },
+        itemStyle: { color: "#00e4ff" },
+        symbol: "circle",
+        symbolSize: 4,
+      },
+    ],
   };
 });
 
 var orderTrendOption = computed(function () {
   return {
-    tooltip: { trigger: "axis", backgroundColor: "rgba(0,0,0,0.7)", borderColor: "#00e4ff", textStyle: { color: "#fff" } },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(0,0,0,0.7)",
+      borderColor: "#00e4ff",
+      textStyle: { color: "#fff" },
+    },
     grid: { left: 35, right: 15, top: 15, bottom: 25 },
-    xAxis: { type: "category", data: trendLabels.value, axisLine: { lineStyle: { color: "#1a5276" } }, axisLabel: { color: "#7fb3d3", fontSize: 10, rotate: trendRange.value === 'year' ? 45 : trendRange.value === 'month' ? 15 : 0 } },
-    yAxis: { type: "value", splitLine: { lineStyle: { color: "#0d2b45" } }, axisLabel: { color: "#7fb3d3", fontSize: 10 } },
-    series: [{ data: trendOrderData.value, type: "bar", itemStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "#00e4ff" }, { offset: 1, color: "#005f73" }] }, borderRadius: [4, 4, 0, 0] }, barWidth: trendRange.value === 'year' ? 8 : trendRange.value === 'month' ? 28 : 16 }],
+    xAxis: {
+      type: "category",
+      data: trendLabels.value,
+      axisLine: { lineStyle: { color: "#1a5276" } },
+      axisLabel: {
+        color: "#7fb3d3",
+        fontSize: 10,
+        rotate:
+          trendRange.value === "year"
+            ? 45
+            : trendRange.value === "month"
+            ? 15
+            : 0,
+      },
+    },
+    yAxis: {
+      type: "value",
+      splitLine: { lineStyle: { color: "#0d2b45" } },
+      axisLabel: { color: "#7fb3d3", fontSize: 10 },
+    },
+    series: [
+      {
+        data: trendOrderData.value,
+        type: "bar",
+        itemStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: "#00e4ff" },
+              { offset: 1, color: "#005f73" },
+            ],
+          },
+          borderRadius: [4, 4, 0, 0],
+        },
+        barWidth:
+          trendRange.value === "year"
+            ? 8
+            : trendRange.value === "month"
+            ? 28
+            : 16,
+      },
+    ],
   };
 });
 
@@ -497,8 +618,11 @@ var couponOption = computed(function () {
 
 async function loadData() {
   try {
-    const ready = await ensureCloudReady(); if (!ready) throw new Error("云开发初始化失败");
-    var res = await callCloudFunction("getDashboardData", { trendRange: trendRange.value });
+    const ready = await ensureCloudReady();
+    if (!ready) throw new Error("云开发初始化失败");
+    var res = await callCloudFunction("getDashboardData", {
+      trendRange: trendRange.value,
+    });
     if (res && res.success && res.data) {
       var d = res.data;
       todayOrderCount.value = d.todayOrderCount || 0;
